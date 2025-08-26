@@ -6,12 +6,12 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import static mx.florinda.cardapio.ItemCardapio.CategoriaCardapio.*;
 
-public class Database {
+public class InMemoryDatabase implements Database {
     
     private final Map<Long, ItemCardapio> itensPorId = new ConcurrentSkipListMap<>();
     private final Map<ItemCardapio, BigDecimal> auditoriaPrecos = new IdentityHashMap<>();
     
-    public Database() {
+    public InMemoryDatabase() {
         var refrescoDoChaves = new ItemCardapio(1L, "Refresco do Chaves",
                 "Suco de limão que parece de tamarindo e tem gosto de groselha.",
                 BEBIDAS, new BigDecimal("2.99"), null);
@@ -43,19 +43,23 @@ public class Database {
         itensPorId.put(churrosDoChaves.id(), churrosDoChaves);
     }
 
+    @Override
     public List<ItemCardapio> listaItensCardapio() {
         return new LinkedList<>(itensPorId.values());
     }
 
+    @Override
     public Optional<ItemCardapio> itemCardapioPorId(Long id) {
         return Optional.ofNullable(itensPorId.get(id));
     }
 
+    @Override
     public boolean removeItemCardapio(Long id) {
         ItemCardapio removido = itensPorId.remove(id);
         return removido != null;
     }
 
+    @Override
     public boolean alteraPrecoItemCardapio(Long id, BigDecimal novoPreco) {
         ItemCardapio item = itensPorId.get(id);
         if (item == null ) return false;
@@ -72,10 +76,12 @@ public class Database {
         System.out.println();
     }
 
+    @Override
     public int totalItensCardapio() {
         return itensPorId.size();
     }
 
+    @Override
     public void adicionaItemCardapio(ItemCardapio item) {
         itensPorId.put(item.id(), item);
     }
