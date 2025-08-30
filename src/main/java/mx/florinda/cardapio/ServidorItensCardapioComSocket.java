@@ -9,11 +9,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.time.format.DateTimeFormatter.ofPattern;
 
 public class ServidorItensCardapioComSocket {
 
@@ -116,6 +122,66 @@ public class ServidorItensCardapioComSocket {
                     database.adicionaItemCardapio(item);
 
                     clientOut.println("HTTP/1.1 200 OK");
+                } else if ("GET".equals(method) && "/".equals(requestURI)) {
+                    logger.fine("Chamou página raiz");
+
+                    List<ItemCardapio> listaItensCardapio = database.listaItensCardapio();
+
+                    StringBuilder itemHtmlBuilder = new StringBuilder();
+
+                    for (ItemCardapio item : listaItensCardapio) {
+                        itemHtmlBuilder.append("<article>");
+                        itemHtmlBuilder.append("<kbd>").append(item.categoria().name()).append("</kbd>");
+                        itemHtmlBuilder.append("<h3>").append(item.nome()).append("</h3>");
+                        itemHtmlBuilder.append("<p>").append(item.descricao()).append("</p>");
+
+                        if (item.precoPromocional() == null) {
+                            itemHtmlBuilder.append("<strong>").append(item.preco()).append("</strong>");
+                        } else {
+                            itemHtmlBuilder
+                                    .append("<mark>Em promoção</mark> <strong>")
+                                                    .append(item.precoPromocional()).append("</strong>")
+                                    .append(" <s>").append(item.preco()).append("</s>");
+                        }
+                        itemHtmlBuilder.append("</article>");
+                    }
+
+                    String html = """
+                            <!DOCTYPE html>
+                            <html lang="en">
+                            <head>
+                                <meta charset="UTF-8">
+                                <title>Florinda Eats - Cardápio</title>
+                                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css">
+                            </head>
+                            <body>
+                            
+                                <header class="container">
+                                    <hgroup>
+                                      <h1>Florinda Eats</h1>
+                                      <p>O sabor da Vila direto pra você</p>
+                                    </hgroup>
+                                </header>
+                      
+                                <main class="container">
+                                  <h2>Cardápio</h2>
+                                  %s
+                                </main>
+                            
+                                <footer class="container">
+                                    <p><small><em>Preços de acordo com %s</em></small></p>
+                                    <p><strong>Florinda Eats</strong> Todos os direitos reservados - %s</p>
+                                </footer>
+                            </body>
+                            </html>
+                            """.formatted(itemHtmlBuilder.toString(),  LocalDateTime.now(), YearMonth.now());
+
+                    clientOut.print("HTTP/1.1 200 OK\r\n");
+                    clientOut.println("Content-type: text/html; charset=UTF-8");
+                    clientOut.print("\r\n");
+                    clientOut.print(html);
+                    clientOut.print("\r\n");
+
                 } else {
                     logger.warning("URI não encontrada: " + requestURI);
                     clientOut.println("HTTP/1.1 404 Not Found");
