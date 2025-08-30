@@ -9,11 +9,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -23,13 +26,17 @@ import static java.time.format.DateTimeFormatter.ofPattern;
 
 public class ServidorItensCardapioComSocket {
 
+    private static final Locale localePtBR = Locale.of("pt", "BR");
+    private static final NumberFormat formatadorMoeda = NumberFormat.getCurrencyInstance(localePtBR);
+    private static final DateTimeFormatter formadorDataHora = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(localePtBR);
+    private static final DateTimeFormatter formatadorAnoMes = DateTimeFormatter.ofPattern("MMMM/yyyy").withLocale(localePtBR);
+    private static final ResourceBundle mensagens = ResourceBundle.getBundle("mensagens");
+
     private static final Logger logger = Logger.getLogger(ServidorItensCardapioComSocket.class.getName());
 
     private static final Database database = new SQLDatabase();
 
     public static void main(String[] args) throws Exception {
-
-        //...
 
         Executor executor = Executors.newFixedThreadPool(50);
 
@@ -130,18 +137,19 @@ public class ServidorItensCardapioComSocket {
                     StringBuilder itemHtmlBuilder = new StringBuilder();
 
                     for (ItemCardapio item : listaItensCardapio) {
+                        String categoria = mensagens.getString("categoria.cardapio."+item.categoria().name().toLowerCase());
                         itemHtmlBuilder.append("<article>");
-                        itemHtmlBuilder.append("<kbd>").append(item.categoria().name()).append("</kbd>");
+                        itemHtmlBuilder.append("<kbd>").append(categoria).append("</kbd>");
                         itemHtmlBuilder.append("<h3>").append(item.nome()).append("</h3>");
                         itemHtmlBuilder.append("<p>").append(item.descricao()).append("</p>");
 
                         if (item.precoPromocional() == null) {
-                            itemHtmlBuilder.append("<strong>").append(item.preco()).append("</strong>");
+                            itemHtmlBuilder.append("<strong>").append(formatadorMoeda.format(item.preco())).append("</strong>");
                         } else {
                             itemHtmlBuilder
                                     .append("<mark>Em promoção</mark> <strong>")
-                                                    .append(item.precoPromocional()).append("</strong>")
-                                    .append(" <s>").append(item.preco()).append("</s>");
+                                                    .append(formatadorMoeda.format(item.precoPromocional())).append("</strong>")
+                                    .append(" <s>").append(formatadorMoeda.format(item.preco())).append("</s>");
                         }
                         itemHtmlBuilder.append("</article>");
                     }
@@ -174,7 +182,7 @@ public class ServidorItensCardapioComSocket {
                                 </footer>
                             </body>
                             </html>
-                            """.formatted(itemHtmlBuilder.toString(),  LocalDateTime.now(), YearMonth.now());
+                            """.formatted(itemHtmlBuilder.toString(), formadorDataHora.format(LocalDateTime.now()), formatadorAnoMes.format(YearMonth.now()));
 
                     clientOut.print("HTTP/1.1 200 OK\r\n");
                     clientOut.println("Content-type: text/html; charset=UTF-8");
