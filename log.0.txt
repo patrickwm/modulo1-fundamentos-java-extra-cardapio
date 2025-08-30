@@ -1,0 +1,2 @@
+Aug 29, 2025 9:21:09 PM mx.florinda.cardapio.ServidorItensCardapioComSocket main
+INFO: Subiu servidor!
