@@ -1,0 +1,29 @@
+Aug 30, 2025 1:36:38 PM mx.florinda.cardapio.ServidorItensCardapioComSocket main
+INFO: Subiu servidor!
+Aug 30, 2025 1:36:45 PM mx.florinda.cardapio.ServidorItensCardapioComSocket trataRequisicao
+FINE: 
+
+Chegou um novo request
+Aug 30, 2025 1:36:46 PM mx.florinda.cardapio.ServidorItensCardapioComSocket trataRequisicao
+FINE: Chamou listagem de itens de cardápio
+Aug 30, 2025 1:36:46 PM jdk.internal.event.EventHelper logX509CertificateEvent
+FINE: X509Certificate: Alg:SHA256withRSA, Serial:02, Subject:CN=MySQL_Server_9.4.0_Auto_Generated_Server_Certificate, Issuer:CN=MySQL_Server_9.4.0_Auto_Generated_CA_Certificate, Key type:RSA, Length:2048, Cert Id:2430871779, Valid from:8/25/25, 10:23 PM, Valid until:8/23/35, 10:23 PM
+Aug 30, 2025 1:36:46 PM jdk.internal.event.EventHelper logX509CertificateEvent
+FINE: X509Certificate: Alg:SHA256withRSA, Serial:01, Subject:CN=MySQL_Server_9.4.0_Auto_Generated_CA_Certificate, Issuer:CN=MySQL_Server_9.4.0_Auto_Generated_CA_Certificate, Key type:RSA, Length:2048, Cert Id:2000205249, Valid from:8/25/25, 10:23 PM, Valid until:8/23/35, 10:23 PM
+Aug 30, 2025 1:36:46 PM jdk.internal.event.EventHelper logTLSHandshakeEvent
+FINE:  TLSHandshake: localhost:3306, TLSv1.3, TLS_AES_128_GCM_SHA256, 2430871779
+Aug 30, 2025 1:36:53 PM mx.florinda.cardapio.ServidorItensCardapioComSocket trataRequisicao
+FINE: 
+
+Chegou um novo request
+Aug 30, 2025 1:36:53 PM mx.florinda.cardapio.ServidorItensCardapioComSocket trataRequisicao
+WARNING: URI não encontrada: /uma-url-qualquer
+Aug 30, 2025 1:37:05 PM java.lang.Shutdown logRuntimeExit
+FINE: Runtime.exit() called with status: 143
+java.lang.Throwable: Runtime.exit(143)
+	at java.base/java.lang.Shutdown.logRuntimeExit(Shutdown.java:179)
+	at java.base/java.lang.Shutdown.exit(Shutdown.java:160)
+	at java.base/java.lang.Terminator$1.handle(Terminator.java:51)
+	at java.base/jdk.internal.misc.Signal$1.run(Signal.java:218)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
