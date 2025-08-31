@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.NumberFormat;
@@ -93,13 +94,17 @@ public class ServidorItensCardapioComSocket {
                     logger.fine("Chamou listagem de itens de cardápio");
                     List<ItemCardapio> listaItensCardapio = database.listaItensCardapio();
 
+                    String mediaType = "application/json";
+
+                    byte[] body;
                     Gson gson = new Gson();
                     String json = gson.toJson(listaItensCardapio);
+                    body = json.getBytes(StandardCharsets.UTF_8);
 
-                    clientOut.println("HTTP/1.1 200 OK");
-                    clientOut.println("Content-type: application/json; charset=UTF-8");
-                    clientOut.println();
-                    clientOut.println(json);
+                    clientOS.write("HTTP/1.1 200 OK\r\n".getBytes(StandardCharsets.UTF_8));
+                    clientOS.write(("Content-type: " + mediaType + "; charset=UTF-8\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+                    clientOS.write(body);
+                    clientOS.flush();
                 } else if ("GET".equals(method) && "/itens-cardapio/total".equals(requestURI)) {
                     logger.fine("Chamou total de itens de cardápio");
                     int totalItens = database.totalItensCardapio();

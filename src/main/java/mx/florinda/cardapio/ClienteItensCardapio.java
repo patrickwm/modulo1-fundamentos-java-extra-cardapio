@@ -9,7 +9,7 @@ public class ClienteItensCardapio {
 
     public static void main(String[] args) throws Exception {
 
-        URI uri = URI.create("http://localhost:8000/itensCardapio.json");
+        URI uri = URI.create("http://localhost:8000/itens-cardapio");
 
 
         try(HttpClient httpClient = HttpClient.newHttpClient()) {
