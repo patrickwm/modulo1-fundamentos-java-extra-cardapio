@@ -26,12 +26,6 @@ import static java.time.format.DateTimeFormatter.ofPattern;
 
 public class ServidorItensCardapioComSocket {
 
-    private static final Locale localePtBR = Locale.of("pt", "BR");
-    private static final NumberFormat formatadorMoeda = NumberFormat.getCurrencyInstance(localePtBR);
-    private static final DateTimeFormatter formadorDataHora = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(localePtBR);
-    private static final DateTimeFormatter formatadorAnoMes = DateTimeFormatter.ofPattern("MMMM/yyyy").withLocale(localePtBR);
-    private static final ResourceBundle mensagens = ResourceBundle.getBundle("mensagens");
-
     private static final Logger logger = Logger.getLogger(ServidorItensCardapioComSocket.class.getName());
 
     private static final Database database = new SQLDatabase();
@@ -129,8 +123,14 @@ public class ServidorItensCardapioComSocket {
                     database.adicionaItemCardapio(item);
 
                     clientOut.println("HTTP/1.1 200 OK");
-                } else if ("GET".equals(method) && "/".equals(requestURI)) {
+                } else if ("GET".equals(method) && ("/".equals(requestURI) || "/en".equals(requestURI))) {
                     logger.fine("Chamou página raiz");
+
+                    Locale locale =  "/en".equals(requestURI) ? Locale.US : Locale.of("pt", "BR");
+                    NumberFormat formatadorMoeda = NumberFormat.getCurrencyInstance(locale);
+                    DateTimeFormatter formadorDataHora = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale);
+                    DateTimeFormatter formatadorAnoMes = DateTimeFormatter.ofPattern("MMMM/yyyy").withLocale(locale);
+                    ResourceBundle mensagens = ResourceBundle.getBundle("mensagens", locale);
 
                     List<ItemCardapio> listaItensCardapio = database.listaItensCardapio();
 
