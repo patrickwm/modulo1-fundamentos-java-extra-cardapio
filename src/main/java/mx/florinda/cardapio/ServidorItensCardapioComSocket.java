@@ -2,9 +2,7 @@ package mx.florinda.cardapio;
 
 import com.google.gson.Gson;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -95,11 +93,26 @@ public class ServidorItensCardapioComSocket {
                     List<ItemCardapio> listaItensCardapio = database.listaItensCardapio();
 
                     String mediaType = "application/json";
+                    for (int i = 1; i < requestLineAndHeadersChunks.length; i++) {
+                        String header = requestLineAndHeadersChunks[i];
+                        if (header.contains("Accept")) {
+                            logger.info(header);
+                            mediaType = header.replace("Accept: ", "");
+                        }
+                    }
 
                     byte[] body;
-                    Gson gson = new Gson();
-                    String json = gson.toJson(listaItensCardapio);
-                    body = json.getBytes(StandardCharsets.UTF_8);
+                    if ("application/x-java-serialized-object".equals(mediaType)) {
+                        logger.info("Enviando objeto java serializado");
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        ObjectOutputStream oos = new ObjectOutputStream(bos);
+                        oos.writeObject(listaItensCardapio);
+                        body = bos.toByteArray();
+                    } else {
+                        Gson gson = new Gson();
+                        String json = gson.toJson(listaItensCardapio);
+                        body = json.getBytes(StandardCharsets.UTF_8);
+                    }
 
                     clientOS.write("HTTP/1.1 200 OK\r\n".getBytes(StandardCharsets.UTF_8));
                     clientOS.write(("Content-type: " + mediaType + "; charset=UTF-8\r\n\r\n").getBytes(StandardCharsets.UTF_8));
