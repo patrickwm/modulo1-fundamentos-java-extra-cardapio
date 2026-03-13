@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -29,19 +30,18 @@ public class ServidorItensCardapioComSocket {
     private static final CardapioSocketApi cardapioSocketApi = new CardapioSocketApi();
 
     public static void main(String[] args) throws Exception {
-        var executor = Executors.newFixedThreadPool(50);
-
-        try (ServerSocket serverSocket = new ServerSocket(8000)) {
+        try (var executor = Executors.newFixedThreadPool(50);
+             var serverSocket = new ServerSocket(8000)) {
             logger.info("Subiu servidor!");
 
             while (true) {
                 var clientSocket = serverSocket.accept();
-                executor.execute(() -> tratarRequisicao(clientSocket));
+                executor.execute(() -> processRequest(clientSocket));
             }
         }
     }
 
-    private static void tratarRequisicao(Socket clientSocket) {
+    private static void processRequest(Socket clientSocket) {
         try (clientSocket) {
             var clientIS = clientSocket.getInputStream();
 
@@ -65,12 +65,7 @@ public class ServidorItensCardapioComSocket {
             var requestURI = requestLineChunks[1];
             var httpVersion = requestLineChunks[2];
             var headersParams = getHeaders(requestLineAndHeadersChunks);
-
-            var executionMethodOpt = Arrays.stream(CardapioSocketApi.class.getMethods())
-                    .filter(m -> existsMethodInAnnotations(m, method))
-                    .filter(m -> m.isAnnotationPresent(Path.class))
-                    .filter(m -> Arrays.asList(m.getAnnotation(Path.class).value()).contains(requestURI))
-                    .findFirst();
+            var executionMethodOpt = searchExecutionMethod(method, requestURI);
 
             logger.finer(() -> "Method: " + method);
             logger.finer(() -> "Request URI: " + requestURI);
@@ -122,10 +117,18 @@ public class ServidorItensCardapioComSocket {
                 .collect(Collectors.toMap(e -> e[0].trim(), e -> e[1].trim()));
     }
 
+    private static Optional<Method> searchExecutionMethod(String method, String requestURI) {
+        return Arrays.stream(CardapioSocketApi.class.getMethods())
+                .filter(m -> existsMethodInAnnotations(m, method))
+                .filter(m -> m.isAnnotationPresent(Path.class))
+                .filter(m -> Arrays.asList(m.getAnnotation(Path.class).value()).contains(requestURI))
+                .findFirst();
+    }
+
     private static boolean existsMethodInAnnotations(Method m, String method) {
         return Arrays.stream(m.getAnnotations())
                 .map(annotation -> annotation.annotationType().getSimpleName())
-                .anyMatch(a -> a.equals(method));
+                .anyMatch(a -> a.equalsIgnoreCase(method));
     }
 
     private static TreeMap<Integer, Object> loadValuesParametersHeadersByIndex(
