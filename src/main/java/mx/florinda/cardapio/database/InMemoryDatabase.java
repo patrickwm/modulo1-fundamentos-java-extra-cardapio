@@ -1,4 +1,6 @@
-package mx.florinda.cardapio;
+package mx.florinda.cardapio.database;
+
+import mx.florinda.cardapio.ItemCardapio;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -55,25 +57,30 @@ public class InMemoryDatabase implements Database {
 
     @Override
     public boolean removeItemCardapio(Long id) {
-        ItemCardapio removido = itensPorId.remove(id);
+        var removido = itensPorId.remove(id);
         return removido != null;
     }
 
     @Override
     public boolean alteraPrecoItemCardapio(Long id, BigDecimal novoPreco) {
-        ItemCardapio item = itensPorId.get(id);
-        if (item == null ) return false;
-        ItemCardapio itemPrecoAlterado = item.alteraPreco(novoPreco);
+        var item = itensPorId.get(id);
+
+        if (item == null ) {
+            return false;
+        }
+
+        var itemPrecoAlterado = item.alteraPreco(novoPreco);
+
         itensPorId.put(id, itemPrecoAlterado);
         auditoriaPrecos.put(item, novoPreco);
+
         return true;
     }
 
     public void rastroAuditoriaPrecos() {
-        System.out.println("\nAuditoria de preços:");
-        auditoriaPrecos.forEach((item, preco) ->
-                System.out.printf(" - %s: %s => %s\n", item.nome(), item.preco(), preco));
-        System.out.println();
+        IO.println("\nAuditoria de preços:");
+        auditoriaPrecos.forEach((item, preco) -> System.out.printf(" - %s: %s => %s\n", item.nome(), item.preco(), preco));
+        IO.println();
     }
 
     @Override

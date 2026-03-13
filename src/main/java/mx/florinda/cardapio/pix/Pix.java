@@ -1,4 +1,4 @@
-package mx.florinda.cardapio;
+package mx.florinda.cardapio.pix;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -77,7 +77,7 @@ public class Pix implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Pix pix = (Pix) o;
+        var pix = (Pix) o;
         return Objects.equals(id, pix.id) && Objects.equals(valor, pix.valor) && Objects.equals(chaveDestino, pix.chaveDestino) && Objects.equals(dataHora, pix.dataHora) && Objects.equals(mensagem, pix.mensagem);
     }
 

@@ -1,4 +1,4 @@
-package mx.florinda.cardapio;
+package mx.florinda.cardapio.pix;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
@@ -10,8 +10,8 @@ public class SerializadorPix {
     public static void main(String[] args) throws Exception {
 
         var pix = new Pix(1L, new BigDecimal("10.99"), "alexandre.aquiles@gmail.com", Instant.now(), "😉");
-        FileOutputStream fos = new FileOutputStream("pix.ser");
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        var fos = new FileOutputStream("pix.ser");
+        var oos = new ObjectOutputStream(fos);
         oos.writeObject(pix);
 
     }

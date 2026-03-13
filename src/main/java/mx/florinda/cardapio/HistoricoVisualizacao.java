@@ -1,8 +1,9 @@
 package mx.florinda.cardapio;
 
+import mx.florinda.cardapio.database.Database;
+
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 import java.util.WeakHashMap;
 
 public class HistoricoVisualizacao {
@@ -15,13 +16,13 @@ public class HistoricoVisualizacao {
     }
 
     public void registrarVisualizacao(Long itemId) {
-        Optional<ItemCardapio> optionalItem = database.itemCardapioPorId(itemId);
+        var optionalItem = database.itemCardapioPorId(itemId);
         if (optionalItem.isEmpty()) {
             System.out.printf("Item não encontrado: %d", itemId);
             return;
         }
-        ItemCardapio itemCardapio = optionalItem.get();
-        LocalDateTime agora = LocalDateTime.now();
+        var itemCardapio = optionalItem.get();
+        var agora = LocalDateTime.now();
         visualizacoes.put(itemCardapio, agora);
         System.out.printf("'%s' visualizado em '%s'\n", itemCardapio.nome(), agora);
     }

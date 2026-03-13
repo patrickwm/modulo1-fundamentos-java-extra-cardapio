@@ -1,4 +1,6 @@
-package mx.florinda.cardapio;
+package mx.florinda.cardapio.database;
+
+import mx.florinda.cardapio.ItemCardapio;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -11,25 +13,25 @@ public class SQLDatabase implements Database {
     @Override
     public List<ItemCardapio> listaItensCardapio() {
 
-        List<ItemCardapio> itensCardapio = new ArrayList<>();
+        var itensCardapio = new ArrayList<ItemCardapio>();
 
-        String sql = "SELECT id, nome, descricao, categoria, preco, preco_promocional FROM item_cardapio";
-        try (Connection conn =
+        var sql = "SELECT id, nome, descricao, categoria, preco, preco_promocional FROM item_cardapio";
+        try (var conn =
                      DriverManager.getConnection("jdbc:mysql://localhost:3306/cardapio", "root", "senha123");
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()){
+            var ps = conn.prepareStatement(sql);
+            var rs = ps.executeQuery()){
 
             while (rs.next()) {
-                long id = rs.getLong("id");
-                String nome = rs.getString("nome");
-                String descricao = rs.getString("descricao");
-                String categoriaStr = rs.getString("categoria");
-                BigDecimal preco = rs.getBigDecimal("preco");
-                BigDecimal precoPromocional = rs.getBigDecimal("preco_promocional");
+                var id = rs.getLong("id");
+                var nome = rs.getString("nome");
+                var descricao = rs.getString("descricao");
+                var categoriaStr = rs.getString("categoria");
+                var preco = rs.getBigDecimal("preco");
+                var precoPromocional = rs.getBigDecimal("preco_promocional");
 
-                ItemCardapio.CategoriaCardapio categoria = ItemCardapio.CategoriaCardapio.valueOf(categoriaStr);
+                var categoria = ItemCardapio.CategoriaCardapio.valueOf(categoriaStr);
 
-                ItemCardapio itemCardapio = new ItemCardapio(id, nome, descricao, categoria, preco, precoPromocional);
+                var itemCardapio = new ItemCardapio(id, nome, descricao, categoria, preco, precoPromocional);
 
                 itensCardapio.add(itemCardapio);
 
@@ -42,13 +44,13 @@ public class SQLDatabase implements Database {
 
     @Override
     public int totalItensCardapio() {
-        String sql = "SELECT count(*) FROM item_cardapio";
-        try (Connection conn =
+        var sql = "SELECT count(*) FROM item_cardapio";
+        try (var conn =
                      DriverManager.getConnection("jdbc:mysql://localhost:3306/cardapio", "root", "senha123");
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()){
+            var ps = conn.prepareStatement(sql);
+            var rs = ps.executeQuery()){
 
-            int count = 0;
+            var count = 0;
             if (rs.next()) {
                 count = rs.getInt(1);
             }
@@ -60,9 +62,9 @@ public class SQLDatabase implements Database {
 
     @Override
     public void adicionaItemCardapio(ItemCardapio item) {
-        String sql = "INSERT INTO item_cardapio (id, nome, descricao, categoria, preco, preco_promocional) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/cardapio", "root", "senha123");
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        var sql = "INSERT INTO item_cardapio (id, nome, descricao, categoria, preco, preco_promocional) VALUES (?, ?, ?, ?, ?, ?)";
+        try (var conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/cardapio", "root", "senha123");
+             var ps = conn.prepareStatement(sql)) {
                 ps.setLong(1, item.id());
                 ps.setString(2, item.nome());
                 ps.setString(3, item.descricao());

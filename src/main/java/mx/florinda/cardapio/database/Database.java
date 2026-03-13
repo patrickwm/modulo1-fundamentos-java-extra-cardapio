@@ -1,4 +1,6 @@
-package mx.florinda.cardapio;
+package mx.florinda.cardapio.database;
+
+import mx.florinda.cardapio.ItemCardapio;
 
 import java.math.BigDecimal;
 import java.util.List;
