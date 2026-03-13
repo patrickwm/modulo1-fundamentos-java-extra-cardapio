@@ -1,14 +1,16 @@
-package mx.florinda.cardapio.socket.server;
+package mx.florinda.cardapio.rest;
 
 import com.google.gson.Gson;
 import mx.florinda.cardapio.database.Database;
 import mx.florinda.cardapio.ItemCardapio;
 import mx.florinda.cardapio.database.SQLDatabase;
+import mx.florinda.cardapio.socket.server.RequestInfo;
 import mx.florinda.cardapio.socket.server.rest.ClientOS;
 import mx.florinda.cardapio.socket.server.rest.Get;
 import mx.florinda.cardapio.socket.server.rest.HeaderParam;
 import mx.florinda.cardapio.socket.server.rest.Post;
 import mx.florinda.cardapio.socket.server.rest.Path;
+import mx.florinda.cardapio.socket.server.rest.Rest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,6 +29,7 @@ import java.util.logging.Logger;
 
 import static mx.florinda.cardapio.Params.CRLF;
 
+@Rest
 public class CardapioSocketApi {
     private static final Logger logger = Logger.getLogger(CardapioSocketApi.class.getName());
     private static final Database database = new SQLDatabase();

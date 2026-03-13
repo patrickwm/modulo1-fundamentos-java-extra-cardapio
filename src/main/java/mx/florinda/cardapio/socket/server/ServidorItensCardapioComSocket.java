@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import mx.florinda.cardapio.socket.server.rest.ClientOS;
 import mx.florinda.cardapio.socket.server.rest.HeaderParam;
 import mx.florinda.cardapio.socket.server.rest.Path;
+import mx.florinda.cardapio.socket.server.rest.Rest;
+import org.reflections.Reflections;
 
 import java.io.OutputStream;
 import java.lang.reflect.Method;
@@ -27,7 +29,6 @@ import static mx.florinda.cardapio.Params.CRLF;
 
 public class ServidorItensCardapioComSocket {
     private static final Logger logger = Logger.getLogger(ServidorItensCardapioComSocket.class.getName());
-    private static final CardapioSocketApi cardapioSocketApi = new CardapioSocketApi();
 
     public static void main(String[] args) throws Exception {
         try (var executor = Executors.newFixedThreadPool(50);
@@ -65,7 +66,6 @@ public class ServidorItensCardapioComSocket {
             var requestURI = requestLineChunks[1];
             var httpVersion = requestLineChunks[2];
             var headersParams = getHeaders(requestLineAndHeadersChunks);
-            var executionMethodOpt = searchExecutionMethod(method, requestURI);
 
             logger.finer(() -> "Method: " + method);
             logger.finer(() -> "Request URI: " + requestURI);
@@ -74,9 +74,10 @@ public class ServidorItensCardapioComSocket {
             Thread.sleep(250);
 
             try (var clientOS = clientSocket.getOutputStream()) {
+                var executionMethodOpt = searchExecutionMethod(method, requestURI);
                 if (executionMethodOpt.isEmpty()) {
                     logger.warning("URI não encontrada: " + requestURI);
-                    var responseLine = "HTTP/1.1 400 Bad Request" + CRLF;
+                    var responseLine = "HTTP/1.1 404 Not Found" + CRLF;
                     clientOS.write(responseLine.getBytes(StandardCharsets.UTF_8));
 
                     return;
@@ -95,7 +96,8 @@ public class ServidorItensCardapioComSocket {
                 setOtherParametersNull(paramsWithIndex, allParamsWithOrder);
 
                 try {
-                    executionMethod.invoke(cardapioSocketApi, allParamsWithOrder.values().toArray());
+                    var restClass = executionMethod.getDeclaringClass().getDeclaredConstructor().newInstance();
+                    executionMethod.invoke(restClass, allParamsWithOrder.values().toArray());
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, ex, () -> "Erro ao tratar " + method + " " + requestURI);
 
@@ -118,10 +120,27 @@ public class ServidorItensCardapioComSocket {
     }
 
     private static Optional<Method> searchExecutionMethod(String method, String requestURI) {
-        return Arrays.stream(CardapioSocketApi.class.getMethods())
+        var reflection = new Reflections("mx.florinda.cardapio");
+
+        var methods = reflection.getTypesAnnotatedWith(Rest.class)
+                .stream()
+                .flatMap(c -> Arrays.stream(c.getMethods()))
                 .filter(m -> existsMethodInAnnotations(m, method))
                 .filter(m -> m.isAnnotationPresent(Path.class))
                 .filter(m -> Arrays.asList(m.getAnnotation(Path.class).value()).contains(requestURI))
+                .toList();
+
+        if (methods.size() > 1) {
+            var messageMethods = methods.stream()
+                    .map(m -> m.getDeclaringClass().getName() + " -> " + m.getName())
+                    .collect(Collectors.joining(CRLF));
+
+            throw new IllegalStateException(
+                    "Existe mais de um método com " + method + "e uri" + requestURI + CRLF + messageMethods);
+        }
+
+        return methods
+                .stream()
                 .findFirst();
     }
 
