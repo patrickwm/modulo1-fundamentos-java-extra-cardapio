@@ -3,12 +3,11 @@ package mx.florinda.cardapio.socket.server;
 import com.google.gson.Gson;
 import mx.florinda.cardapio.database.Database;
 import mx.florinda.cardapio.ItemCardapio;
-import mx.florinda.cardapio.database.InMemoryDatabase;
 import mx.florinda.cardapio.database.SQLDatabase;
 import mx.florinda.cardapio.socket.server.rest.ClientOS;
-import mx.florinda.cardapio.socket.server.rest.GET;
+import mx.florinda.cardapio.socket.server.rest.Get;
 import mx.florinda.cardapio.socket.server.rest.HeaderParam;
-import mx.florinda.cardapio.socket.server.rest.POST;
+import mx.florinda.cardapio.socket.server.rest.Post;
 import mx.florinda.cardapio.socket.server.rest.Path;
 
 import java.io.ByteArrayOutputStream;
@@ -32,7 +31,7 @@ public class CardapioSocketApi {
     private static final Logger logger = Logger.getLogger(CardapioSocketApi.class.getName());
     private static final Database database = new SQLDatabase();
 
-    @GET
+    @Get
     @Path("/itens-cardapio")
     public void listItensCardapio(@HeaderParam("Accept") String accept, @ClientOS OutputStream clientOS)
             throws IOException {
@@ -63,7 +62,7 @@ public class CardapioSocketApi {
         clientOS.flush();
     }
 
-    @GET
+    @Get
     @Path("/itens-cardapio/total")
     public void countItensCardapio(@ClientOS OutputStream clientOS) throws IOException {
         logger.fine("Chamou total de itens de cardápio");
@@ -79,7 +78,7 @@ public class CardapioSocketApi {
         clientOS.flush();
     }
 
-    @GET
+    @Get
     @Path("/itensCardapio.json")
     public void fileItensCardapio(@ClientOS OutputStream clientOS) throws IOException {
         logger.fine("Chamou arquivo itensCardapio.json");
@@ -95,7 +94,7 @@ public class CardapioSocketApi {
         clientOS.flush();
     }
 
-    @GET
+    @Get
     @Path({"/", "/en"})
     public void index(RequestInfo requestInfo, @ClientOS OutputStream clientOS) throws IOException {
         logger.fine("Chamou página raiz");
@@ -182,7 +181,7 @@ public class CardapioSocketApi {
         clientOS.flush();
     }
 
-    @POST
+    @Post
     @Path("/itens-cardapio")
     public void createItemCardapio(@ClientOS OutputStream clientOS, ItemCardapio itemCardapio) throws IOException {
         logger.fine("Chamou adição de itens de cardápio");
