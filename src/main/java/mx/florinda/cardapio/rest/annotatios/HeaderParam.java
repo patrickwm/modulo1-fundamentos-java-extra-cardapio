@@ -1,4 +1,4 @@
-package mx.florinda.cardapio.socket.server.rest;
+package mx.florinda.cardapio.rest.annotatios;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ClientOS {
+public @interface HeaderParam {
+    String value();
 }
