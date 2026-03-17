@@ -1,4 +1,8 @@
-use cardapio;
+SET NAMES utf8mb4;
+
+CREATE DATABASE IF NOT EXISTS cardapio;
+
+USE cardapio;
 
 create table item_cardapio (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
