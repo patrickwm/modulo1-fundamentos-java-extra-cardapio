@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -294,6 +295,10 @@ public class ServidorItensCardapioComSocket {
 
         if (type == Integer.class || type == int.class) {
             return Integer.valueOf(value);
+        }
+
+        if (type == BigDecimal.class) {
+            return new BigDecimal(value);
         }
 
         return value;

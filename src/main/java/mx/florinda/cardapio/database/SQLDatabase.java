@@ -123,6 +123,19 @@ public class SQLDatabase implements Database {
 
     @Override
     public boolean alterarPrecoItemCardapio(Long id, BigDecimal novoPreco) {
-        throw new UnsupportedOperationException("TODO");
+        var sql = "UPDATE item_cardapio SET preco = ? WHERE id = ?";
+
+        try (var conn = ConnectionFactory.getInstance().getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            ps.setBigDecimal(1, novoPreco);
+            ps.setLong(2, id);
+
+
+            var rowCount = ps.executeUpdate();
+
+            return rowCount > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -2,6 +2,7 @@ package mx.florinda.cardapio.rest;
 
 import com.google.gson.Gson;
 import mx.florinda.cardapio.ItemCardapio;
+import mx.florinda.cardapio.application.cardapio.AlterPriceItemCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.CountItemsCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.CreateItemCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.DeleteItemCardapioUseCase;
@@ -9,8 +10,12 @@ import mx.florinda.cardapio.application.cardapio.GetItemCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.ItemCardapioFileUseCase;
 import mx.florinda.cardapio.application.cardapio.ListItemCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.PageRootUseCase;
+import mx.florinda.cardapio.application.exception.NotFoundException;
 import mx.florinda.cardapio.rest.annotatios.Delete;
+import mx.florinda.cardapio.rest.annotatios.ErrorMapping;
+import mx.florinda.cardapio.rest.annotatios.Patch;
 import mx.florinda.cardapio.rest.annotatios.PathParam;
+import mx.florinda.cardapio.rest.annotatios.ResponseCode;
 import mx.florinda.cardapio.socket.server.RequestInfo;
 import mx.florinda.cardapio.rest.annotatios.ClientOS;
 import mx.florinda.cardapio.rest.annotatios.Get;
@@ -37,7 +42,7 @@ public class CardapioSocketRest {
         logger.fine("Chamou listagem de itens de cardápio");
         var useCase = new ListItemCardapioUseCase();
         var dto = useCase.execute(accept);
-        var responseLine = "HTTP/1.1 200 OK" + CRLF;
+        var responseLine = "HTTP/1.1 " + HttpStatus.OK + CRLF;
         var responseContentType = "Content-type: %s; charset=UTF-8%s%s".formatted(dto.mediaType(), CRLF, CRLF);
 
         writeResponse(clientOS, responseLine, responseContentType, dto.body());
@@ -45,12 +50,17 @@ public class CardapioSocketRest {
 
     @Get
     @Path("/itens-cardapio/{id}")
+    @ResponseCode(
+        fail = {
+            @ErrorMapping(exception = NotFoundException.class, status = HttpStatus.NOT_FOUND)
+        }
+    )
     public void getItemCardapio(@HeaderParam("Accept") String accept, @PathParam("id") Long id, @ClientOS OutputStream clientOS)
             throws IOException {
         logger.fine("Chamou listagem de itens de cardápio");
         var useCase = new GetItemCardapioUseCase();
         var dto = useCase.execute(new GetItemCardapioUseCase.ItemCardapioSearch(accept, id));
-        var responseLine = "HTTP/1.1 200 OK" + CRLF;
+        var responseLine = "HTTP/1.1 " + HttpStatus.OK + CRLF;
         var responseContentType = "Content-type: %s; charset=UTF-8%s%s".formatted(dto.mediaType(), CRLF, CRLF);
 
         writeResponse(clientOS, responseLine, responseContentType, dto.body());
@@ -58,13 +68,18 @@ public class CardapioSocketRest {
 
     @Delete
     @Path("/itens-cardapio/{id}")
+    @ResponseCode(
+        fail = {
+            @ErrorMapping(exception = NotFoundException.class, status = HttpStatus.NOT_FOUND)
+        }
+    )
     public void deleteItemCardapio(@PathParam("id") Long id, @ClientOS OutputStream clientOS)
             throws IOException {
         logger.fine("Chamou listagem de itens de cardápio");
         var useCase = new DeleteItemCardapioUseCase();
         useCase.execute(id);
 
-        var responseLine = "HTTP/1.1 200 OK" + CRLF;
+        var responseLine = "HTTP/1.1 " + HttpStatus.NO_CONTENT + CRLF;
         var responseContentType = "Content-type: application/json; charset=UTF-8"  + CRLF +  CRLF;
         writeResponse(clientOS, responseLine, responseContentType, (String) null);
     }
@@ -74,7 +89,7 @@ public class CardapioSocketRest {
     public void countItensCardapio(@ClientOS OutputStream clientOS) throws IOException {
         logger.fine("Chamou total de itens de cardápio");
         var totalItens = new CountItemsCardapioUseCase().execute();
-        var responseLine = "HTTP/1.1 200 OK" + CRLF;
+        var responseLine = "HTTP/1.1 " + HttpStatus.OK + CRLF;
         var responseContentType = "Content-type: application/json; charset=UTF-8%s%s" + CRLF + CRLF;
         var totalBody = new Gson().toJson(totalItens);
 
@@ -87,7 +102,7 @@ public class CardapioSocketRest {
         logger.fine("Chamou arquivo itensCardapio.json");
 
         var dataFile = new ItemCardapioFileUseCase().execute(requestInfo.uri());
-        var responseLine = "HTTP/1.1 200 OK" + CRLF;
+        var responseLine = "HTTP/1.1 " + HttpStatus.OK + CRLF;
         var responseContentType = "Content-type: application/json; charset=UTF-8%s%s" + CRLF + CRLF;
 
         writeResponse(clientOS, responseLine, responseContentType, dataFile);
@@ -99,7 +114,7 @@ public class CardapioSocketRest {
         logger.fine("Chamou página raiz");
 
         var html = new PageRootUseCase().execute(requestInfo.uri());
-        var responseLine = "HTTP/1.1 200 OK" + CRLF;
+        var responseLine = "HTTP/1.1 " + HttpStatus.OK + CRLF;
         var responseContentType = "Content-type: text/html; charset=UTF-8%s%s" + CRLF + CRLF;
 
         writeResponse(clientOS, responseLine, responseContentType, html);
@@ -111,7 +126,24 @@ public class CardapioSocketRest {
         logger.fine("Chamou adição de itens de cardápio");
 
         new CreateItemCardapioUseCase().execute(itemCardapio);
-        var responseLine = "HTTP/1.1 201 CREATED" + CRLF;
+        var responseLine = "HTTP/1.1 " + HttpStatus.CREATED + CRLF;
+        writeResponse(clientOS, responseLine, null, (String) null);
+    }
+
+    @Patch
+    @Path("/itens-cardapio/{id}/price")
+    @ResponseCode(
+        fail = {
+            @ErrorMapping(exception = NotFoundException.class, status = HttpStatus.NOT_FOUND)
+        }
+    )
+    public void alterPriceItemCardapio(@ClientOS OutputStream clientOS, @PathParam("id") Long id, AlterPriceRequest alterPriceRequest) throws IOException {
+        logger.fine("Chamou adição de itens de cardápio");
+
+        var useCase = new AlterPriceItemCardapioUseCase();
+        useCase.execute(new AlterPriceItemCardapioUseCase.AlterPrice(id, alterPriceRequest.price()));
+
+        var responseLine = "HTTP/1.1 " + HttpStatus.NO_CONTENT + CRLF;
         writeResponse(clientOS, responseLine, null, (String) null);
     }
 
