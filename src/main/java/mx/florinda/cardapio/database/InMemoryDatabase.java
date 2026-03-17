@@ -10,10 +10,14 @@ import static mx.florinda.cardapio.ItemCardapio.CategoriaCardapio.*;
 
 public class InMemoryDatabase implements Database {
     
-    private final Map<Long, ItemCardapio> itensPorId = new ConcurrentSkipListMap<>();
-    private final Map<ItemCardapio, BigDecimal> auditoriaPrecos = new IdentityHashMap<>();
+    private static final Map<Long, ItemCardapio> itensPorId = new ConcurrentSkipListMap<>();
+    private static final Map<ItemCardapio, BigDecimal> auditoriaPrecos = new IdentityHashMap<>();
     
     public InMemoryDatabase() {
+        if (!itensPorId.isEmpty()) {
+            return;
+        }
+
         var refrescoDoChaves = new ItemCardapio(1L, "Refresco do Chaves",
                 "Suco de limão que parece de tamarindo e tem gosto de groselha.",
                 BEBIDAS, new BigDecimal("2.99"), null);
@@ -46,7 +50,7 @@ public class InMemoryDatabase implements Database {
     }
 
     @Override
-    public List<ItemCardapio> listaItensCardapio() {
+    public List<ItemCardapio> listarItensCardapio() {
         return new LinkedList<>(itensPorId.values());
     }
 
@@ -56,13 +60,13 @@ public class InMemoryDatabase implements Database {
     }
 
     @Override
-    public boolean removeItemCardapio(Long id) {
+    public boolean removerItemCardapio(Long id) {
         var removido = itensPorId.remove(id);
         return removido != null;
     }
 
     @Override
-    public boolean alteraPrecoItemCardapio(Long id, BigDecimal novoPreco) {
+    public boolean alterarPrecoItemCardapio(Long id, BigDecimal novoPreco) {
         var item = itensPorId.get(id);
 
         if (item == null ) {
@@ -89,7 +93,7 @@ public class InMemoryDatabase implements Database {
     }
 
     @Override
-    public void adicionaItemCardapio(ItemCardapio item) {
+    public void adicionarItemCardapio(ItemCardapio item) {
         itensPorId.put(item.id(), item);
     }
 }

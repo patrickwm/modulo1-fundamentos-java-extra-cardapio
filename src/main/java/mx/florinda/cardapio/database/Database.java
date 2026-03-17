@@ -7,15 +7,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Database {
-    List<ItemCardapio> listaItensCardapio();
+    List<ItemCardapio> listarItensCardapio();
 
     Optional<ItemCardapio> itemCardapioPorId(Long id);
 
-    boolean removeItemCardapio(Long id);
+    boolean removerItemCardapio(Long id);
 
-    boolean alteraPrecoItemCardapio(Long id, BigDecimal novoPreco);
+    boolean alterarPrecoItemCardapio(Long id, BigDecimal novoPreco);
 
     int totalItensCardapio();
 
-    void adicionaItemCardapio(ItemCardapio item);
+    void adicionarItemCardapio(ItemCardapio item);
+
+    static Database getInstance() {
+        return new InMemoryDatabase();
+    }
 }
