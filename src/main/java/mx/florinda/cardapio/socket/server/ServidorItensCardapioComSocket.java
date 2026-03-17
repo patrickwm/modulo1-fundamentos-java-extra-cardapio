@@ -1,18 +1,23 @@
 package mx.florinda.cardapio.socket.server;
 
 import com.google.gson.Gson;
-import mx.florinda.cardapio.socket.server.rest.ClientOS;
-import mx.florinda.cardapio.socket.server.rest.HeaderParam;
-import mx.florinda.cardapio.socket.server.rest.Path;
-import mx.florinda.cardapio.socket.server.rest.Rest;
+import mx.florinda.cardapio.rest.annotatios.ClientOS;
+import mx.florinda.cardapio.rest.annotatios.ErrorMapping;
+import mx.florinda.cardapio.rest.annotatios.HeaderParam;
+import mx.florinda.cardapio.rest.annotatios.Path;
+import mx.florinda.cardapio.rest.annotatios.PathParam;
+import mx.florinda.cardapio.rest.annotatios.ResponseCode;
+import mx.florinda.cardapio.rest.annotatios.Rest;
 import org.reflections.Reflections;
 
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -86,18 +92,42 @@ public class ServidorItensCardapioComSocket {
                 var executionMethod = executionMethodOpt.get();
 
                 var paramsWithIndex = IntStream.range(0, executionMethod.getParameterCount())
-                        .mapToObj(i -> new Pair<>(i, executionMethod.getParameters()[i]))
+                        .mapToObj(i -> Map.entry(i, executionMethod.getParameters()[i]))
                         .toList();
 
                 var allParamsWithOrder = loadValuesParametersHeadersByIndex(paramsWithIndex, headersParams);
                 loadClientOSParameter(paramsWithIndex, allParamsWithOrder, clientOS);
                 loadRequestInfoParameter(paramsWithIndex, allParamsWithOrder, method, requestURI);
+                loadPathParamParameter(paramsWithIndex, allParamsWithOrder, executionMethod, method, requestURI);
                 loadBodyParameter(paramsWithIndex, allParamsWithOrder, requestChunks);
                 setOtherParametersNull(paramsWithIndex, allParamsWithOrder);
 
                 try {
                     var restClass = executionMethod.getDeclaringClass().getDeclaredConstructor().newInstance();
                     executionMethod.invoke(restClass, allParamsWithOrder.values().toArray());
+                } catch (InvocationTargetException ex) {
+                    logger.log(Level.WARNING, ex, () -> "Erro ao tratar " + method + " " + requestURI);
+
+                    var httpResponseLine = "HTTP/1.1 ";
+
+                    if (executionMethod.isAnnotationPresent(ResponseCode.class)) {
+                        var responseCode = executionMethod.getAnnotation(ResponseCode.class);
+
+                        var responseCodeByClass = Arrays.stream(responseCode.fail())
+                                .collect(Collectors.toMap(ErrorMapping::exception, ErrorMapping::status));
+
+                        if (responseCodeByClass.containsKey(ex.getCause().getClass())) {
+                            var httpStatus = responseCodeByClass.get(ex.getCause().getClass());
+
+                            var responseLine = httpResponseLine + httpStatus.getCode() + " " + httpStatus.getDescription() + CRLF;
+                            clientOS.write(responseLine.getBytes(StandardCharsets.UTF_8));
+
+                            return;
+                        }
+                    }
+
+                    var responseLine = "HTTP/1.1 500 Internal Server Error" + CRLF;
+                    clientOS.write(responseLine.getBytes(StandardCharsets.UTF_8));
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, ex, () -> "Erro ao tratar " + method + " " + requestURI);
 
@@ -127,7 +157,7 @@ public class ServidorItensCardapioComSocket {
                 .flatMap(c -> Arrays.stream(c.getMethods()))
                 .filter(m -> existsMethodInAnnotations(m, method))
                 .filter(m -> m.isAnnotationPresent(Path.class))
-                .filter(m -> Arrays.asList(m.getAnnotation(Path.class).value()).contains(requestURI))
+                .filter(m -> pathEqualsRequestURI(m, requestURI))
                 .toList();
 
         if (methods.size() > 1) {
@@ -150,55 +180,138 @@ public class ServidorItensCardapioComSocket {
                 .anyMatch(a -> a.equalsIgnoreCase(method));
     }
 
-    private static TreeMap<Integer, Object> loadValuesParametersHeadersByIndex(
-            List<Pair<Integer, Parameter>> paramsWithIndex,
-            Map<String, String> headersParams) {
+    private static boolean pathEqualsRequestURI(Method m, String requestURI) {
+        var valuesPath = Arrays.asList(m.getAnnotation(Path.class).value());
+        var containsPathParam = valuesPath.stream()
+                .anyMatch(p -> p.contains("{") && p.contains("}"));
 
-        var valueAnnotationHeaderParam = (Function<Pair<Integer, Parameter>, String>)
-                p -> headersParams.get(p.second().getAnnotation(HeaderParam.class).value());
+        if (!containsPathParam) {
+            return valuesPath.contains(requestURI);
+        }
 
-        return paramsWithIndex
-            .stream()
-            .filter(p -> p.second().isAnnotationPresent(HeaderParam.class))
-            .filter(p -> valueAnnotationHeaderParam.apply(p) != null)
-            .map(p -> new Pair<>(p.first(), valueAnnotationHeaderParam.apply(p)))
-            .collect(Collectors.toMap(Pair::first, Pair::second, (a, _) -> a, TreeMap::new));
+        if (valuesPath.size() > 1) {
+            throw new IllegalStateException("Métodos com variáveis {} não podem ter mais de um path");
+        }
+
+        return valuesPath.stream()
+                .map(p -> p.replaceAll("\\{.*}", ".*"))
+                .anyMatch(p -> Pattern.compile(p).matcher(requestURI).matches());
     }
 
-    private static void loadClientOSParameter(List<Pair<Integer, Parameter>> paramsWithIndex,
+    private static TreeMap<Integer, Object> loadValuesParametersHeadersByIndex(
+            List<Map.Entry<Integer, Parameter>> paramsWithIndex,
+            Map<String, String> headersParams) {
+
+        var valueAnnotationHeaderParam = (Function<Map.Entry<Integer, Parameter>, String>)
+                p -> headersParams.get(p.getValue().getAnnotation(HeaderParam.class).value());
+
+        return paramsWithIndex
+                .stream()
+                .filter(p -> p.getValue().isAnnotationPresent(HeaderParam.class))
+                .filter(p -> valueAnnotationHeaderParam.apply(p) != null)
+                .map(p -> Map.entry(p.getKey(), valueAnnotationHeaderParam.apply(p)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, _) -> a, TreeMap::new));
+    }
+
+    private static void loadClientOSParameter(List<Map.Entry<Integer, Parameter>> paramsWithIndex,
                                               TreeMap<Integer, Object> allParamsWithOrder, OutputStream clientOS) {
         paramsWithIndex
                 .stream()
-                .filter(p -> p.second().isAnnotationPresent(ClientOS.class))
-                .map(p -> new Pair<>(p.first(), clientOS))
+                .filter(p -> p.getValue().isAnnotationPresent(ClientOS.class))
+                .map(p -> Map.entry(p.getKey(), clientOS))
                 .findFirst()
-                .ifPresent(e -> allParamsWithOrder.put(e.first(), e.second()));
+                .ifPresent(e -> allParamsWithOrder.put(e.getKey(), e.getValue()));
     }
 
-    private static void loadRequestInfoParameter(List<Pair<Integer, Parameter>> paramsWithIndex,
+    private static void loadRequestInfoParameter(List<Map.Entry<Integer, Parameter>> paramsWithIndex,
                                                  TreeMap<Integer, Object> allParamsWithOrder, String method,
                                                  String requestURI) {
         paramsWithIndex
                 .stream()
-                .filter(p -> p.second().getType().getName().equals(RequestInfo.class.getName()))
-                .map(p -> new Pair<>(p.first(), new RequestInfo(method, requestURI)))
+                .filter(p -> p.getValue().getType().getName().equals(RequestInfo.class.getName()))
+                .map(p -> Map.entry(p.getKey(), new RequestInfo(method, requestURI)))
                 .findFirst()
-                .ifPresent(e -> allParamsWithOrder.put(e.first(), e.second()));
+                .ifPresent(e -> allParamsWithOrder.put(e.getKey(), e.getValue()));
     }
 
-    private static void loadBodyParameter(List<Pair<Integer, Parameter>> paramsWithIndex,
+    private static void loadPathParamParameter(List<Map.Entry<Integer, Parameter>> paramsWithIndex,
+                                               TreeMap<Integer, Object> allParamsWithOrder, Method m,
+                                               String method, String requestURI) {
+
+        var existsPathParam = Arrays.stream(m.getParameters())
+                .anyMatch(p -> p.isAnnotationPresent(PathParam.class));
+
+        if (!existsPathParam) {
+            return;
+        }
+
+        var valuePath = Arrays.stream(m.getAnnotation(Path.class).value()).findFirst().get();
+        var names = new ArrayList<String>();
+        var matcher = Pattern.compile("\\{([^/]+)}").matcher(valuePath);
+
+        while (matcher.find()) {
+            names.add(matcher.group(1));
+        }
+
+        var regexPath = valuePath.replaceAll("\\{([^/]+)}", "([^/]+)");
+        var matcherPath = Pattern.compile("^" + regexPath + "$").matcher(requestURI);
+        var values = new ArrayList<String>();
+
+        while (matcherPath.find()) {
+            values.add(matcherPath.group(1));
+        }
+
+        if (names.size() != values.size()) {
+            throw new IllegalStateException(
+                    String.format(
+                            "Erro ao mepear campos @PathParam. PathParams encontrados: %s | Valores encontrados: %s",
+                            String.join(", ", names),
+                            String.join(", ", values)));
+        }
+
+        var pathParamByName = IntStream.range(0, names.size())
+                .mapToObj(i -> Map.entry(names.get(i), values.get(i)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, _) -> a, TreeMap::new));
+
+        paramsWithIndex
+                .stream()
+                .filter(p -> p.getValue().isAnnotationPresent(PathParam.class))
+                .map(p -> Map.entry(p.getKey(),
+                        convert(pathParamByName.get(p.getValue().getAnnotation(PathParam.class).value()),
+                                p.getValue().getType())))
+                .findFirst()
+                .ifPresent(e -> allParamsWithOrder.put(e.getKey(), e.getValue()));
+    }
+
+    private static Object convert(String value, Class<?> type) {
+        if (type == String.class) {
+            return value;
+        }
+
+        if (type == Long.class || type == long.class) {
+            return Long.valueOf(value);
+        }
+
+        if (type == Integer.class || type == int.class) {
+            return Integer.valueOf(value);
+        }
+
+        return value;
+    }
+
+    private static void loadBodyParameter(List<Map.Entry<Integer, Parameter>> paramsWithIndex,
                                           TreeMap<Integer, Object> allParamsWithOrder, String[] requestChunks) {
         paramsWithIndex
                 .stream()
-                .filter(p -> !allParamsWithOrder.containsKey(p.first()))
-                .filter(p -> p.second().getAnnotations().length == 0)
+                .filter(p -> !allParamsWithOrder.containsKey(p.getKey()))
+                .filter(p -> p.getValue().getAnnotations().length == 0)
                 .findFirst()
                 .map(p -> {
                     var value = requestChunks.length > 1
-                            ? transformBody(requestChunks[1], p.second())
+                            ? transformBody(requestChunks[1], p.getValue())
                             : null;
 
-                    return allParamsWithOrder.put(p.first(), value);
+                    return allParamsWithOrder.put(p.getKey(), value);
                 });
     }
 
@@ -207,15 +320,11 @@ public class ServidorItensCardapioComSocket {
         return gson.fromJson(body, p.getType());
     }
 
-    private static void setOtherParametersNull(List<Pair<Integer, Parameter>> paramsWithIndex,
+    private static void setOtherParametersNull(List<Map.Entry<Integer, Parameter>> paramsWithIndex,
                                                TreeMap<Integer, Object> allParamsWithOrder) {
         paramsWithIndex
                 .stream()
-                .filter(p -> !allParamsWithOrder.containsKey(p.first()))
-                .forEach(p -> allParamsWithOrder.put(p.first(), null));
+                .filter(p -> !allParamsWithOrder.containsKey(p.getKey()))
+                .forEach(p -> allParamsWithOrder.put(p.getKey(), null));
     }
-
-    private record Pair<A, B>(A first, B second) {
-    }
-
 }
