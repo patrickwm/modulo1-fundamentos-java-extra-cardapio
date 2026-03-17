@@ -1,0 +1,10 @@
+###
+# curl -v -X PATCH -H "Content-Type: application/json" -d "{\"preco\":3.9}" http://localhost:8000/itens-cardapio/1/price
+PATCH http://localhost:8000/itens-cardapio/1/price
+Content-Type: application/json
+
+{
+  "preco": 4.0
+}
+
+###

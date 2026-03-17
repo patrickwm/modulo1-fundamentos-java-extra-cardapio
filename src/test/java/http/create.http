@@ -1,0 +1,15 @@
+###
+# curl -v -H "Content-Type: application/json" -d "{\"id\":1,\"nome\":\"Item 1\",\"descricao\":\"Item 1\",\"categoria\":\"PRATOS_PRINCIPAIS\",\"preco\":3.9,\"precoPromocional\":2.99}" http://localhost:8000/itens-cardapio
+POST http://localhost:8000/itens-cardapio
+Content-Type: application/json
+
+{
+  "id": 52,
+  "nome": "Item 1",
+  "descricao": "Item 1",
+  "categoria": "PRATOS_PRINCIPAIS",
+  "preco": 3.9,
+  "precoPromocional": 2.99
+}
+
+###

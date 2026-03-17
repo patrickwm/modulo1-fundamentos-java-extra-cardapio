@@ -1,0 +1,54 @@
+###
+# curl -v http://localhost:8000/itens-cardapio/1
+GET http://localhost:8000/itens-cardapio/1
+
+###
+
+# curl -v http://localhost:8000/itens-cardapio
+GET http://localhost:8000/itens-cardapio
+
+###
+
+# curl -v -H "Content-Type: application/json" http://localhost:8000/itens-cardapio
+GET http://localhost:8000/itens-cardapio
+Content-Type: application/json
+
+###
+
+# curl -v -H "Content-Type: application/x-java-serialized-object" http://localhost:8000/itens-cardapio
+GET http://localhost:8000/itens-cardapio
+Content-Type: application/x-java-serialized-object
+
+###
+
+# curl -v -H "Content-Type: application/json" http://localhost:8000/itens-cardapio/1
+GET http://localhost:8000/itens-cardapio/1
+Content-Type: application/json
+
+###
+
+# curl -v -H "Content-Type: application/x-java-serialized-object" http://localhost:8000/itens-cardapio/1
+GET http://localhost:8000/itens-cardapio/1
+Content-Type: application/x-java-serialized-object
+
+###
+
+# curl -v http://localhost:8000/itensCardapio.json
+GET http://localhost:8000/itensCardapio.json
+
+###
+
+# curl -v http://localhost:8000/itens-cardapio/total
+GET http://localhost:8000/itens-cardapio/total
+
+###
+
+# curl -v http://localhost:8000/
+GET http://localhost:8000/
+
+###
+
+# curl -v http://localhost:8000/en
+GET http://localhost:8000/en
+
+###
