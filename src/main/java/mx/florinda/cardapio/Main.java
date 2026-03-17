@@ -1,13 +1,13 @@
 package mx.florinda.cardapio;
 
 
-import mx.florinda.cardapio.database.SQLDatabase;
+import mx.florinda.cardapio.database.ItemCardapioDao;
 
 import java.math.BigDecimal;
 
 public class Main {
     public static void main(String[] args) {
-        var database = new SQLDatabase();
+        var database = new ItemCardapioDao();
 
         var listaItensCardapio = database.listarItensCardapio();
         listaItensCardapio.forEach(System.out::println);

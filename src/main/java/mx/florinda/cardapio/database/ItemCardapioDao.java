@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SQLDatabase implements Database {
-    public SQLDatabase() {
+public class ItemCardapioDao implements Database {
+    public ItemCardapioDao() {
     }
 
     @Override
