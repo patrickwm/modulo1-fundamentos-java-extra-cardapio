@@ -107,7 +107,18 @@ public class SQLDatabase implements Database {
 
     @Override
     public boolean removerItemCardapio(Long id) {
-        throw new UnsupportedOperationException("TODO");
+        var sql = "DELETE FROM item_cardapio WHERE id = ?";
+
+        try (var conn = ConnectionFactory.getInstance().getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+
+            var rowCount = ps.executeUpdate();
+
+            return rowCount > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

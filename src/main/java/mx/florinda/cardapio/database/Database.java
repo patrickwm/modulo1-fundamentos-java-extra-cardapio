@@ -20,6 +20,6 @@ public interface Database {
     void adicionarItemCardapio(ItemCardapio item);
 
     static Database getInstance() {
-        return new InMemoryDatabase();
+        return new SQLDatabase();
     }
 }

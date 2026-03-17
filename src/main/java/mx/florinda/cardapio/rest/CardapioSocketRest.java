@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import mx.florinda.cardapio.ItemCardapio;
 import mx.florinda.cardapio.application.cardapio.CountItemsCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.CreateItemCardapioUseCase;
+import mx.florinda.cardapio.application.cardapio.DeleteItemCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.GetItemCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.ItemCardapioFileUseCase;
 import mx.florinda.cardapio.application.cardapio.ListItemCardapioUseCase;
 import mx.florinda.cardapio.application.cardapio.PageRootUseCase;
+import mx.florinda.cardapio.rest.annotatios.Delete;
 import mx.florinda.cardapio.rest.annotatios.PathParam;
 import mx.florinda.cardapio.socket.server.RequestInfo;
 import mx.florinda.cardapio.rest.annotatios.ClientOS;
@@ -52,6 +54,19 @@ public class CardapioSocketRest {
         var responseContentType = "Content-type: %s; charset=UTF-8%s%s".formatted(dto.mediaType(), CRLF, CRLF);
 
         writeResponse(clientOS, responseLine, responseContentType, dto.body());
+    }
+
+    @Delete
+    @Path("/itens-cardapio/{id}")
+    public void deleteItemCardapio(@PathParam("id") Long id, @ClientOS OutputStream clientOS)
+            throws IOException {
+        logger.fine("Chamou listagem de itens de cardápio");
+        var useCase = new DeleteItemCardapioUseCase();
+        useCase.execute(id);
+
+        var responseLine = "HTTP/1.1 200 OK" + CRLF;
+        var responseContentType = "Content-type: application/json; charset=UTF-8"  + CRLF +  CRLF;
+        writeResponse(clientOS, responseLine, responseContentType, (String) null);
     }
 
     @Get
