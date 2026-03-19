@@ -9,25 +9,25 @@ GET http://localhost:8000/itens-cardapio
 
 ###
 
-# curl -v -H "Content-Type: application/json" http://localhost:8000/itens-cardapio
+# curl -v -H "Accept: application/json" http://localhost:8000/itens-cardapio
 GET http://localhost:8000/itens-cardapio
 Content-Type: application/json
 
 ###
 
-# curl -v -H "Content-Type: application/x-java-serialized-object" http://localhost:8000/itens-cardapio
+# curl -v -H "Accept: application/x-java-serialized-object" http://localhost:8000/itens-cardapio
 GET http://localhost:8000/itens-cardapio
 Content-Type: application/x-java-serialized-object
 
 ###
 
-# curl -v -H "Content-Type: application/json" http://localhost:8000/itens-cardapio/1
+# curl -v -H "Accept: application/json" http://localhost:8000/itens-cardapio/1
 GET http://localhost:8000/itens-cardapio/1
 Content-Type: application/json
 
 ###
 
-# curl -v -H "Content-Type: application/x-java-serialized-object" http://localhost:8000/itens-cardapio/1
+# curl -v -H "Accept: application/x-java-serialized-object" http://localhost:8000/itens-cardapio/1
 GET http://localhost:8000/itens-cardapio/1
 Content-Type: application/x-java-serialized-object
 
