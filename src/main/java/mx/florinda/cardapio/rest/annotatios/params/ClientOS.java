@@ -1,4 +1,4 @@
-package mx.florinda.cardapio.rest.annotatios;
+package mx.florinda.cardapio.rest.annotatios.params;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PathParam {
-    String value();
+public @interface ClientOS {
 }

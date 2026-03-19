@@ -1,6 +1,7 @@
-package mx.florinda.cardapio.rest.annotatios;
+package mx.florinda.cardapio.rest.annotatios.methods;
 
 import mx.florinda.cardapio.rest.HttpStatus;
+import mx.florinda.cardapio.rest.annotatios.ErrorMapping;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
