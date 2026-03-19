@@ -1,12 +1,12 @@
 package mx.florinda.cardapio.socket.server;
 
 import com.google.gson.Gson;
-import mx.florinda.cardapio.rest.annotatios.ClientOS;
+import mx.florinda.cardapio.rest.annotatios.params.ClientOS;
 import mx.florinda.cardapio.rest.annotatios.ErrorMapping;
-import mx.florinda.cardapio.rest.annotatios.HeaderParam;
-import mx.florinda.cardapio.rest.annotatios.Path;
-import mx.florinda.cardapio.rest.annotatios.PathParam;
-import mx.florinda.cardapio.rest.annotatios.ResponseCode;
+import mx.florinda.cardapio.rest.annotatios.params.HeaderParam;
+import mx.florinda.cardapio.rest.annotatios.methods.Path;
+import mx.florinda.cardapio.rest.annotatios.params.PathParam;
+import mx.florinda.cardapio.rest.annotatios.methods.ResponseCode;
 import mx.florinda.cardapio.rest.annotatios.Rest;
 import org.reflections.Reflections;
 
